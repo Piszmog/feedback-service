@@ -10,19 +10,32 @@ import (
 	"time"
 )
 
+// MySQL is a wrapper around interacting with a MySQL DB.
 type MySQL struct {
 	db *sql.DB
 }
 
 // Open create a connection to the MySQL DB.
 func Open(options Options) (*MySQL, error) {
+	//
+	// Validate the provided options
+	//
 	if err := options.Validate(); err != nil {
 		return nil, err
 	}
+	//
+	// Connect to the DB
+	//
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=%t", options.Username, options.Password,
 		options.Host, options.Port, options.DatabaseName, options.ParseTime))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to the MySQL DB: %w", err)
+	}
+	//
+	// Ensure we can talk to the DB
+	//
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping the DB: %w", err)
 	}
 	return &MySQL{db: db}, nil
 }
@@ -45,6 +58,7 @@ func (d MySQL) CreateFeedbackTableIfNotExists() error {
 	return nil
 }
 
+// Exists checks if a feedback matching the userID and sessionID exists in the table.
 func (d MySQL) Exists(userID string, sessionID string) (bool, error) {
 	row := d.db.QueryRow("SELECT EXISTS(SELECT * FROM feedback WHERE userID=? AND sessionID=?)", userID, sessionID)
 	var exists bool
@@ -57,6 +71,7 @@ func (d MySQL) Exists(userID string, sessionID string) (bool, error) {
 	return exists, nil
 }
 
+// Insert inserts the provided feedback.
 func (d MySQL) Insert(feedback model.Feedback) error {
 	_, err := d.db.Exec("INSERT INTO feedback(`userID`, `sessionID`, `comment`, `rating`, `date`) VALUES (?,?,?,?,?)",
 		feedback.UserID, feedback.SessionID, feedback.Comment, feedback.Rating, time.Now())
@@ -66,6 +81,7 @@ func (d MySQL) Insert(feedback model.Feedback) error {
 	return nil
 }
 
+// Find finds the rows matching the sessionID. Results are limited.
 func (d MySQL) Find(sessionID string, sort Sort, limit int) ([]model.Feedback, error) {
 	query := fmt.Sprintf("SELECT * FROM feedback where sessionID=? ORDER BY `date` %s LIMIT %d", sort, limit)
 	rows, err := d.db.Query(query, sessionID)
@@ -74,6 +90,9 @@ func (d MySQL) Find(sessionID string, sort Sort, limit int) ([]model.Feedback, e
 	}
 	defer closeRows(rows)
 	var feedback []model.Feedback
+	//
+	// Read each row
+	//
 	for rows.Next() {
 		var row model.Feedback
 		if err := rows.Scan(&row.ID, &row.UserID, &row.SessionID, &row.Comment, &row.Rating, &row.Date); err != nil {
@@ -84,6 +103,7 @@ func (d MySQL) Find(sessionID string, sort Sort, limit int) ([]model.Feedback, e
 	return feedback, nil
 }
 
+// FindWithFilter finds the rows matching the sessionID and with the additional filter. Results are ordered and limited.
 func (d MySQL) FindWithFilter(sessionID string, filter Filter, sort Sort, limit int) ([]model.Feedback, error) {
 	query := fmt.Sprintf("SELECT * FROM feedback where sessionID=? AND rating =? ORDER BY `date` %s LIMIT %d", sort, limit)
 	rows, err := d.db.Query(query, sessionID, filter.Rating)
@@ -92,6 +112,9 @@ func (d MySQL) FindWithFilter(sessionID string, filter Filter, sort Sort, limit 
 	}
 	defer closeRows(rows)
 	var feedback []model.Feedback
+	//
+	// Read each row
+	//
 	for rows.Next() {
 		var row model.Feedback
 		if err := rows.Scan(&row.ID, &row.UserID, &row.SessionID, &row.Comment, &row.Rating, &row.Date); err != nil {
@@ -102,6 +125,7 @@ func (d MySQL) FindWithFilter(sessionID string, filter Filter, sort Sort, limit 
 	return feedback, nil
 }
 
+// Close closes the connection to the MySQL DB.
 func (d *MySQL) Close() {
 	if err := d.db.Close(); err != nil {
 		log.Println(fmt.Errorf("failed to close the connect to the DB: %w", err))
