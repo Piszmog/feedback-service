@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Piszmog/feedback-service/db"
 	"github.com/Piszmog/feedback-service/transport"
 	"log"
 	"os"
@@ -9,15 +10,28 @@ import (
 )
 
 const (
-	defaultPort     = "8080"
-	environmentPort = "PORT"
+	defaultPort           = "8080"
+	environmentPort       = "PORT"
+	environmentDBDatabase = "DB_DATABASE"
+	environmentDBHost     = "DB_HOST"
+	environmentDBPassword = "DB_PASSWORD"
+	environmentDBPort     = "DB_PORT"
+	environmentDBUsername = "DB_USERNAME"
 )
 
 func main() {
 	//
 	// Connect to the DB
 	//
-	// TODO
+	mysql := connectToDB()
+	defer mysql.Close()
+	//
+	// Create the table if does not exist
+	//
+	if err := mysql.CreateFeedbackTableIfNotExists(); err != nil {
+		log.Println(err)
+		return
+	}
 	//
 	// Get the port
 	//
@@ -33,7 +47,7 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 		IdleTimeout:  60 * time.Second,
-		//DB: // TODO
+		DB:           mysql,
 	}
 	go func() {
 		if err := srv.Start(); err != nil {
@@ -44,6 +58,30 @@ func main() {
 	// If any shutdown signals come, then try to gracefully shut the server down
 	//
 	gracefulShutdown(srv)
+}
+
+func connectToDB() *db.MySQL {
+	//
+	// Get env variable for the DB
+	//
+	username := os.Getenv(environmentDBUsername)
+	password := os.Getenv(environmentDBPassword)
+	host := os.Getenv(environmentDBHost)
+	dbPort := os.Getenv(environmentDBPort)
+	database := os.Getenv(environmentDBDatabase)
+	options := db.Options{
+		Username:     username,
+		Password:     password,
+		Host:         host,
+		Port:         dbPort,
+		DatabaseName: database,
+		ParseTime:    true,
+	}
+	mysql, err := db.Open(options)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return mysql
 }
 
 func gracefulShutdown(srv *transport.HTTPServer) {

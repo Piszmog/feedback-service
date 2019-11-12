@@ -151,7 +151,7 @@ func (s *HTTPServer) retrieveFeedback() func(w http.ResponseWriter, r *http.Requ
 		if len(ratingFilter) > 0 {
 			feedback, err = s.DB.FindWithFilter(sessionID, db.Filter{Rating: ratingFilter}, findLimit, db.Descending)
 		} else {
-			feedback, err = s.DB.Find(sessionID, findLimit, db.Descending)
+			feedback, err = s.DB.Find(sessionID, db.Descending, findLimit)
 		}
 		if err != nil {
 			writeHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to retrieve feedback for session %s", sessionID),
@@ -175,10 +175,11 @@ func writeHTTPError(statusCode int, reason string, err error, w http.ResponseWri
 		Reason: reason,
 		Err:    err,
 	}
-	if _, err := w.Write([]byte(httpError.Error())); err != nil {
+	w.WriteHeader(statusCode)
+	if _, err := w.Write([]byte(httpError.ErrorJSON())); err != nil {
 		log.Println(fmt.Errorf("failed to write HTTP error: %s: %w", httpError.Error(), err))
 	}
-	w.WriteHeader(statusCode)
+	log.Println(httpError.Error())
 	return
 }
 

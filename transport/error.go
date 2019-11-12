@@ -9,14 +9,20 @@ type HTTPError struct {
 	Err    error
 }
 
-// Error provides a reason and a code in a JSON format.
+// Error provides a reason and a code.
 func (e HTTPError) Error() string {
 	reason := e.Reason
 	//
 	// If an error was provided, add to the reason
 	//
 	if e.Err != nil {
-		reason = fmt.Errorf("%s: %w", e.Reason, e.Err).Error()
+		reason = fmt.Errorf("%s: %w", e.Reason).Error()
 	}
+	return fmt.Sprintf("statusCode: %d, reason: %s", e.Code, reason)
+}
+
+// ErrorJSON provides a reason and a code in a JSON format.
+func (e HTTPError) ErrorJSON() string {
+	reason := e.Reason
 	return fmt.Sprintf(`{"statusCode":%d, "reason":"%s"}`, e.Code, reason)
 }
