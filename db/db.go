@@ -17,7 +17,7 @@ type DB interface {
 	Find(sessionID string, sort Sort, limit int) ([]model.Feedback, error)
 
 	// Find finds feedback for a session and with the provided filter. Limit specifies how many of the most recent feedback are returned.
-	FindWithFilter(sessionID string, filter Filter, limit int, sort Sort) ([]model.Feedback, error)
+	FindWithFilter(sessionID string, filter Filter, sort Sort, limit int) ([]model.Feedback, error)
 
 	// Close closes the DB connection.
 	Close()

@@ -149,7 +149,7 @@ func (s *HTTPServer) retrieveFeedback() func(w http.ResponseWriter, r *http.Requ
 		// Find the last 15 most recent feedback provided for the session.
 		//
 		if len(ratingFilter) > 0 {
-			feedback, err = s.DB.FindWithFilter(sessionID, db.Filter{Rating: ratingFilter}, findLimit, db.Descending)
+			feedback, err = s.DB.FindWithFilter(sessionID, db.Filter{Rating: ratingFilter}, db.Descending, findLimit)
 		} else {
 			feedback, err = s.DB.Find(sessionID, db.Descending, findLimit)
 		}

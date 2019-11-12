@@ -84,7 +84,7 @@ func (d MySQL) Find(sessionID string, sort Sort, limit int) ([]model.Feedback, e
 	return feedback, nil
 }
 
-func (d MySQL) FindWithFilter(sessionID string, filter Filter, limit int, sort Sort) ([]model.Feedback, error) {
+func (d MySQL) FindWithFilter(sessionID string, filter Filter, sort Sort, limit int) ([]model.Feedback, error) {
 	query := fmt.Sprintf("SELECT * FROM feedback where sessionID=? AND rating =? ORDER BY `date` %s LIMIT %d", sort, limit)
 	rows, err := d.db.Query(query, sessionID, filter.Rating)
 	if err != nil {
