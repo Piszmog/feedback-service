@@ -46,6 +46,7 @@ type Options struct {
 	ParseTime    bool
 }
 
+// Validate validates the provided options.
 func (o Options) Validate() error {
 	if len(o.Username) == 0 {
 		return errors.New("require username name to connect to the DB")
