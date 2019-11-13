@@ -1,0 +1,112 @@
+swagger: "2.0"
+info:
+  description: "Service for users to post their feedback of a recent session and for operators to retrieve and 15 most recent feedbacks for a session."
+  version: "1.0.0"
+  title: "Feedback Service"
+tags:
+  - name: "Feedback"
+    description: "Inserting and Retrieving Feedback"
+schemes:
+  - "https"
+  - "http"
+paths:
+  /{sessionID}:
+    get:
+      tags:
+        - "session"
+      summary: "Retreive the 15 most recent feedbacks"
+      description: "Returns 15 feedbacks"
+      operationId: "retrieveFeedback"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "sessionID"
+          in: "path"
+          description: "ID of session receiving feedback"
+          required: true
+          type: "string"
+          format: "string"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            $ref: "#/definitions/Feedbacks"
+        500:
+          description: "Failed to find feedback"
+          schema:
+            $ref: "#/definitions/Error"
+    post:
+      tags:
+        - "session"
+      summary: "User adds feedback to a session"
+      description: "User adds a comment and a rating to a session"
+      operationId: "insertFeedback"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "sessionID"
+          in: "path"
+          description: "ID of session receiving feedback"
+          required: true
+          type: "string"
+          format: "string"
+        - in: header
+          type: "string"
+          name: "Ubi-UserId"
+          description: "The ID of the User"
+        - in: body
+          name: feedback
+          schema:
+            $ref: "#/definitions/Request"
+      responses:
+        200:
+          description: "User's feedback sucessfully posted"
+        400:
+          description: "Missing header 'Ubi-UserId' or invalid request payload"
+          schema:
+            $ref: "#/definitions/Error"
+        409:
+          description: "User already submitted feedback for session"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Failed to check for previous feedback or insert feedback"
+          schema:
+            $ref: "#/definitions/Error"
+definitions:
+  Request:
+    type: "object"
+    properties:
+      comment:
+        type: "string"
+      rating:
+        type: "integer"
+  Feedback:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      userId:
+        type: "string"
+      sessionId:
+        type: "string"
+      comment:
+        type: "string"
+      rating:
+        type: "integer"
+      date:
+        type: "string"
+        format: "date-time"
+  Feedbacks:
+    type: "array"
+    items:
+      $ref: '#/definitions/Feedback'
+  Error:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+      reason:
+        type: "string"
