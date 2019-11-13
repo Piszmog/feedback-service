@@ -13,7 +13,12 @@ import (
 )
 
 const (
+	defaultDatabase       = "ubisoft"
+	defaultDBHost         = "localhost"
+	defaultDBPort         = "3306"
+	defaultHost           = "localhost"
 	defaultPort           = "8080"
+	environmentHost       = "HOST"
 	environmentPort       = "PORT"
 	environmentDBDatabase = "DB_DATABASE"
 	environmentDBHost     = "DB_HOST"
@@ -23,6 +28,8 @@ const (
 )
 
 func main() {
+	start := time.Now()
+	log.Println("Starting application...")
 	//
 	// Connect to the DB
 	//
@@ -39,8 +46,12 @@ func main() {
 		return
 	}
 	//
-	// Get the port
+	// Get the host and port
 	//
+	host := os.Getenv(environmentHost)
+	if len(host) == 0 {
+		host = defaultHost
+	}
 	port := os.Getenv(environmentPort)
 	if len(port) == 0 {
 		port = defaultPort
@@ -49,6 +60,7 @@ func main() {
 	// Create the HTTP server and run it
 	//
 	srv := &transport.HTTPServer{
+		Host:         host,
 		Port:         port,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -60,6 +72,7 @@ func main() {
 			log.Println(err)
 		}
 	}()
+	log.Printf("Application started in %f seconds\n", time.Since(start).Seconds())
 	//
 	// If any shutdown signals come, then try to gracefully shut the server down
 	//
@@ -73,8 +86,20 @@ func createMySQLDB() (*db.MySQL, error) {
 	username := os.Getenv(environmentDBUsername)
 	password := os.Getenv(environmentDBPassword)
 	host := os.Getenv(environmentDBHost)
+	if len(host) == 0 {
+		log.Println("Defaulting to default DB host name 'localhost'")
+		host = defaultDBHost
+	}
 	dbPort := os.Getenv(environmentDBPort)
+	if len(dbPort) == 0 {
+		log.Println("Defaulting to default DB port '3306'")
+		dbPort = defaultDBPort
+	}
 	database := os.Getenv(environmentDBDatabase)
+	if len(database) == 0 {
+		log.Println("Defaulting to default database name 'ubisoft'")
+		database = defaultDatabase
+	}
 	options := db.Options{
 		Username:     username,
 		Password:     password,
@@ -103,6 +128,7 @@ func createMySQLDB() (*db.MySQL, error) {
 	if err := dbConnection.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping the DB: %w", err)
 	}
+	log.Printf("Successfully connected to %s database\n", database)
 	return &db.MySQL{DB: dbConnection}, nil
 }
 

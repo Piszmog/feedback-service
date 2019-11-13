@@ -51,13 +51,13 @@ type Options struct {
 // Validate validates the provided options.
 func (o Options) Validate() error {
 	if len(o.Username) == 0 {
-		return errors.New("require username name to connect to the DB")
+		return errors.New("require username to connect to the DB")
 	} else if len(o.Password) == 0 {
-		return errors.New("require password name to connect to the DB")
+		return errors.New("require password to connect to the DB")
 	} else if len(o.Host) == 0 {
-		return errors.New("require host name to connect to the DB")
+		return errors.New("require host to connect to the DB")
 	} else if len(o.Port) == 0 {
-		return errors.New("require port name to connect to the DB")
+		return errors.New("require port to connect to the DB")
 	} else if len(o.DatabaseName) == 0 {
 		return errors.New("require database name to connect to the DB")
 	}

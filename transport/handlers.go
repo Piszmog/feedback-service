@@ -1,7 +1,6 @@
 package transport
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/Piszmog/feedback-service/db"
@@ -22,47 +21,6 @@ const (
 	queryRating       = "rating"
 )
 
-// HTTPServer is the HTTP server with the provided configurations.
-type HTTPServer struct {
-	Port         string
-	WriteTimeout time.Duration
-	ReadTimeout  time.Duration
-	IdleTimeout  time.Duration
-	DB           db.DB
-	srv          *http.Server
-}
-
-// Start starts the HTTP server.
-func (s *HTTPServer) Start() error {
-	//
-	// Setup the routing
-	//
-	router := mux.NewRouter()
-	//
-	// Setup the possible paths
-	//
-	router.HandleFunc("/{sessionID}", s.InsertFeedback()).Methods(http.MethodPost)
-	router.HandleFunc("/{sessionID}", s.RetrieveFeedback()).Methods(http.MethodGet)
-	//
-	// Configure the server
-	//
-	srv := &http.Server{
-		Addr:         "0.0.0.0:" + s.Port, //todo address
-		WriteTimeout: s.WriteTimeout,
-		ReadTimeout:  s.ReadTimeout,
-		IdleTimeout:  s.IdleTimeout,
-		Handler:      router,
-	}
-	s.srv = srv
-	//
-	// Start the server
-	//
-	if err := srv.ListenAndServe(); err != nil {
-		return fmt.Errorf("failed to start server on port %s: %w", s.Port, err)
-	}
-	return nil
-}
-
 // InsertFeedback inserts a user's feedback for a session. If a user has already submitted feedback, a 409 is returned.
 func (s *HTTPServer) InsertFeedback() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +40,7 @@ func (s *HTTPServer) InsertFeedback() func(w http.ResponseWriter, r *http.Reques
 		exists, err := s.DB.Exists(userID, sessionID)
 		if err != nil {
 			writeHTTPError(http.StatusInternalServerError,
-				fmt.Sprintf("Failed to check if user %s has previouly submitted feedback for session %s", userID, sessionID),
+				fmt.Sprintf("Failed to check if user %s has previously submitted feedback for session %s", userID, sessionID),
 				err, w)
 			return
 		}
@@ -97,7 +55,7 @@ func (s *HTTPServer) InsertFeedback() func(w http.ResponseWriter, r *http.Reques
 		defer closeRequestBody(r.Body)
 		var feedback model.Feedback
 		if err := json.NewDecoder(r.Body).Decode(&feedback); err != nil {
-			writeHTTPError(http.StatusInternalServerError,
+			writeHTTPError(http.StatusBadRequest,
 				fmt.Sprintf("Failed to decode user %s feedback for session %s", userID, sessionID), err, w)
 			return
 		}
@@ -166,19 +124,4 @@ func writeHTTPError(statusCode int, reason string, err error, w http.ResponseWri
 	}
 	log.Println(httpError.Error())
 	return
-}
-
-// Shutdown shutdowns the server with the provided timeout.
-func (s *HTTPServer) Shutdown(timeout time.Duration) {
-	//
-	// Create a deadline
-	//
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	//
-	// Will wait for timeout if there are connections
-	//
-	if err := s.srv.Shutdown(ctx); err != nil {
-		log.Println(err)
-	}
 }
