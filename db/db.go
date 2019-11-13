@@ -32,7 +32,9 @@ type Filter struct {
 type Sort string
 
 const (
-	Ascending  Sort = "ASC"
+	// Ascending sorts results in ascending order
+	Ascending Sort = "ASC"
+	// Descending sorts results in descending order
 	Descending Sort = "DESC"
 )
 
