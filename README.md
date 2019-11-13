@@ -11,17 +11,17 @@ There are a few ways to build the application. Each way will create binaries for
 ### Windows Script
 A `build.bat` file is provided.
 
-e.g. `TODO`
+e.g. `buid.bat`
 
-### Bash Script
+### Shell Script
 A `build.sh` file is provided.
 
-e.g. `TODO`
+e.g. `./build.sh`
 
 ### Makefile
 A `makefile` file is provided.
 
-e.g. `TODO`
+e.g. `make all`
 
 ## Running
 The following is how to run the application,
