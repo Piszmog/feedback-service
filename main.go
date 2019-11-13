@@ -50,10 +50,12 @@ func main() {
 	//
 	host := os.Getenv(environmentHost)
 	if len(host) == 0 {
+		log.Println("Defaulting to default HTTP host 'localhost'")
 		host = defaultHost
 	}
 	port := os.Getenv(environmentPort)
 	if len(port) == 0 {
+		log.Println("Defaulting to default HTTP port '8080'")
 		port = defaultPort
 	}
 	//
@@ -73,6 +75,7 @@ func main() {
 		}
 	}()
 	log.Printf("Application started in %f seconds\n", time.Since(start).Seconds())
+	log.Printf("Running on %s:%s with PID %d\n", host, port, os.Getpid())
 	//
 	// If any shutdown signals come, then try to gracefully shut the server down
 	//
