@@ -2,6 +2,7 @@ package db_test
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Piszmog/feedback-service/db"
@@ -153,8 +154,7 @@ func TestMySQL_Insert(t *testing.T) {
 	//
 	// Setup Mocks
 	//
-	date := time.Now()
-	mock.ExpectExec("INSERT INTO feedback*").WithArgs("123", "987", "A Test", 5, date).
+	mock.ExpectExec("INSERT INTO feedback*").WithArgs("123", "987", "A Test", 5, anyTime{}).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	//
 	// Run the test
@@ -164,7 +164,7 @@ func TestMySQL_Insert(t *testing.T) {
 		SessionID: "987",
 		Comment:   "A Test",
 		Rating:    5,
-		Date:      date,
+		Date:      time.Now(),
 	})
 	//
 	// Ensure expectations were met
@@ -186,8 +186,7 @@ func TestMySQL_Insert_WithError(t *testing.T) {
 	//
 	// Setup Mocks
 	//
-	date := time.Now()
-	mock.ExpectExec("INSERT INTO feedback*").WithArgs("123", "987", "A Test", 5, date).
+	mock.ExpectExec("INSERT INTO feedback*").WithArgs("123", "987", "A Test", 5, anyTime{}).
 		WillReturnError(errors.New("failed"))
 	//
 	// Run the test
@@ -197,7 +196,7 @@ func TestMySQL_Insert_WithError(t *testing.T) {
 		SessionID: "987",
 		Comment:   "A Test",
 		Rating:    5,
-		Date:      date,
+		Date:      time.Now(),
 	})
 	//
 	// Ensure expectations were met
@@ -331,4 +330,12 @@ func createMockDB(t *testing.T) (*db.MySQL, sqlmock.Sqlmock) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	return &db.MySQL{DB: connection}, mock
+}
+
+type anyTime struct{}
+
+// Match satisfies sqlmock.Argument interface
+func (a anyTime) Match(v driver.Value) bool {
+	_, ok := v.(time.Time)
+	return ok
 }
