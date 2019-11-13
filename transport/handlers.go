@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -26,7 +27,7 @@ func (s *HTTPServer) InsertFeedback() func(w http.ResponseWriter, r *http.Reques
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(headerContentType, contentTypeJSON)
 		sessionID := mux.Vars(r)[pathSessionID]
-		userID := r.Header.Get(headerUserID)
+		userID := strings.TrimSpace(r.Header.Get(headerUserID))
 		//
 		// Validate the user ID header
 		//
