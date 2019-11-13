@@ -16,7 +16,7 @@ func (e HTTPError) Error() string {
 	// If an error was provided, add to the reason
 	//
 	if e.Err != nil {
-		reason = fmt.Errorf("%s: %w", e.Reason).Error()
+		reason = fmt.Errorf("%s: %w", e.Reason, e.Err).Error()
 	}
 	return fmt.Sprintf("statusCode: %d, reason: %s", e.Code, reason)
 }

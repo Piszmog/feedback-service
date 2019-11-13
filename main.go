@@ -1,8 +1,11 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"github.com/Piszmog/feedback-service/db"
 	"github.com/Piszmog/feedback-service/transport"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"os"
 	"os/signal"
@@ -23,7 +26,10 @@ func main() {
 	//
 	// Connect to the DB
 	//
-	mysql := connectToDB()
+	mysql, err := createMySQLDB()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	defer mysql.Close()
 	//
 	// Create the table if does not exist
@@ -60,7 +66,7 @@ func main() {
 	gracefulShutdown(srv)
 }
 
-func connectToDB() *db.MySQL {
+func createMySQLDB() (*db.MySQL, error) {
 	//
 	// Get env variable for the DB
 	//
@@ -77,11 +83,27 @@ func connectToDB() *db.MySQL {
 		DatabaseName: database,
 		ParseTime:    true,
 	}
-	mysql, err := db.Open(options)
-	if err != nil {
-		log.Fatalln(err)
+	//
+	// Validate the provided options
+	//
+	if err := options.Validate(); err != nil {
+		return nil, err
 	}
-	return mysql
+	//
+	// Connect to the DB
+	//
+	dbConnection, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=%t",
+		options.Username, options.Password, options.Host, options.Port, options.DatabaseName, options.ParseTime))
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to the MySQL DB: %w", err)
+	}
+	//
+	// Ensure we can talk to the DB
+	//
+	if err := dbConnection.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping the DB: %w", err)
+	}
+	return &db.MySQL{DB: dbConnection}, nil
 }
 
 func gracefulShutdown(srv *transport.HTTPServer) {
