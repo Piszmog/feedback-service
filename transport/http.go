@@ -39,14 +39,10 @@ func (s *HTTPServer) Start() error {
 	//
 	router := mux.NewRouter()
 	//
-	// Add logging middleware to get some visibility into requests being made
-	//
-	router.Use(loggingMiddleware)
-	//
 	// Setup the possible paths
 	//
-	router.HandleFunc("/{sessionID}", s.insertFeedback()).Methods(http.MethodPost)
-	router.HandleFunc("/{sessionID}", s.retrieveFeedback()).Methods(http.MethodGet)
+	router.HandleFunc("/{sessionID}", s.InsertFeedback()).Methods(http.MethodPost)
+	router.HandleFunc("/{sessionID}", s.RetrieveFeedback()).Methods(http.MethodGet)
 	//
 	// Configure the server
 	//
@@ -67,20 +63,8 @@ func (s *HTTPServer) Start() error {
 	return nil
 }
 
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//
-		// Log the route that is being called
-		//
-		log.Println(r.RequestURI)
-		//
-		// Call the next handler, which can be another middleware in the chain, or the final handler.
-		//
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (s *HTTPServer) insertFeedback() func(w http.ResponseWriter, r *http.Request) {
+// InsertFeedback inserts a user's feedback for a session. If a user has already submitted feedback, a 409 is returned.
+func (s *HTTPServer) InsertFeedback() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(headerContentType, contentTypeJSON)
 		sessionID := mux.Vars(r)[pathSessionID]
@@ -137,7 +121,8 @@ func closeRequestBody(body io.ReadCloser) {
 	}
 }
 
-func (s *HTTPServer) retrieveFeedback() func(w http.ResponseWriter, r *http.Request) {
+// RetrieveFeedback retrieves the last 15 feedbacks for a specified session.
+func (s *HTTPServer) RetrieveFeedback() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(headerContentType, contentTypeJSON)
 		sessionID := mux.Vars(r)[pathSessionID]
