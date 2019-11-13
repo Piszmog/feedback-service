@@ -59,6 +59,11 @@ func (s *HTTPServer) InsertFeedback() func(w http.ResponseWriter, r *http.Reques
 				fmt.Sprintf("Failed to decode user %s feedback for session %s", userID, sessionID), err, w)
 			return
 		}
+		if feedback.Rating > 5 {
+			writeHTTPError(http.StatusBadRequest,
+				fmt.Sprintf("User %s tried to submit a rating higher than the max rating value '5' for session %s. Submitted rating %d", userID, sessionID, feedback.Rating), nil, w)
+			return
+		}
 		//
 		// If user has not submitted feedback yet, insert their feedback
 		//

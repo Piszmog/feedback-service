@@ -40,6 +40,38 @@ func TestHTTPServer_InsertFeedback(t *testing.T) {
 	}
 }
 
+func TestHTTPServer_InsertFeedback_TooHighRating(t *testing.T) {
+	//
+	// Create server
+	//
+	server := transport.HTTPServer{DB: mockDB{exists: false}}
+	//
+	// Create Request, recorder, and handler
+	//
+	request, err := http.NewRequest(http.MethodPost, "/987", bytes.NewReader([]byte(`{"comment":"A Test", "rating":6}`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Set("Ubi-UserId", "123")
+	recorder := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/{sessionID}", server.InsertFeedback())
+	//
+	// Serve
+	//
+	router.ServeHTTP(recorder, request)
+	//
+	// Perform checks
+	//
+	if status := recorder.Code; status != http.StatusBadRequest {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+	}
+	expected := `{"statusCode":400, "reason":"User 123 tried to submit a rating higher than the max rating value '5' for session 987. Submitted rating 6"}`
+	if recorder.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v", recorder.Body.String(), expected)
+	}
+}
+
 func TestHTTPServer_InsertFeedback_MalformedRequest(t *testing.T) {
 	//
 	// Create server
