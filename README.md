@@ -11,16 +11,22 @@ There are a few ways to build the application. Each way will create binaries for
 ### Windows Script
 A `build.bat` file is provided.
 
+#### Building
+Run the script to execute tests and build the binaries,
 e.g. `buid.bat`
 
 ### Shell Script
 A `build.sh` file is provided.
 
+#### Building
+Run the script to execute tests and build the binaries,
 e.g. `./build.sh`
 
 ### Makefile
 A `makefile` file is provided.
 
+### Building
+The make file allows for `build`, `clean`, `test` or `all`
 e.g. `make all`
 
 ## Running
@@ -47,6 +53,8 @@ Run the application by starting the built binary.
 
 The binary can be created by following the above steps to build or by going to the __Releases__ page and downloading the 
 latest binary.
+
+e.g. `./feedback-service-max`
 
 ## Database
 The database used for the application is a [MySQL](https://dev.mysql.com/downloads/installer/) DB.
@@ -81,6 +89,19 @@ create index sessionID
 
 create index userID
     on feedback (userID, sessionID);
+```
+
+#### Queries
+The following are the different queries ran against the `feedback` table,
+
+```sql
+SELECT EXISTS(SELECT * FROM feedback WHERE userID=? AND sessionID=?);
+
+INSERT INTO feedback(`userID`, `sessionID`, `comment`, `rating`, `date`) VALUES (?,?,?,?,?);
+
+SELECT * FROM feedback where sessionID=? ORDER BY `date` DESC LIMIT 15;
+
+SELECT * FROM feedback where sessionID=? AND rating=? ORDER BY `date` DESC LIMIT 15;
 ```
 
 ## APIs
