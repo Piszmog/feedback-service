@@ -202,7 +202,7 @@ Different response bodies are returned based on the status code returned by the 
 ###### Example
 * Method: `GET`
 * Path: `/1234567`
-* Request Body:
+* Response Body:
 ```json
 [
   {
