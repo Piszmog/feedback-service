@@ -56,6 +56,19 @@ latest binary.
 
 e.g. `./feedback-service-max`
 
+###### Example Logs
+```text
+2019/11/13 16:54:18 Starting application...
+2019/11/13 16:54:18 Defaulting to default DB host name 'localhost'
+2019/11/13 16:54:18 Defaulting to default DB port '3306'
+2019/11/13 16:54:18 Defaulting to default database name 'ubisoft'
+2019/11/13 16:54:18 Successfully connected to ubisoft database
+2019/11/13 16:54:18 Defaulting to default HTTP host 'localhost'
+2019/11/13 16:54:18 Defaulting to default HTTP port '8080'
+2019/11/13 16:54:18 Application started in 0.011936 seconds
+2019/11/13 16:54:18 Running on localhost:8080 with PID 9632
+```
+
 ## Database
 The database used for the application is a [MySQL](https://dev.mysql.com/downloads/installer/) DB.
 
