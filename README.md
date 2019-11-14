@@ -54,7 +54,7 @@ Run the application by starting the built binary.
 The binary can be created by following the above steps to build or by going to the __Releases__ page and downloading the 
 latest binary.
 
-e.g. `./feedback-service-max`
+e.g. `./feedback-service-mac`
 
 ###### Example Logs
 ```text
