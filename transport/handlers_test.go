@@ -66,7 +66,7 @@ func TestHTTPServer_InsertFeedback_TooHighRating(t *testing.T) {
 	if status := recorder.Code; status != http.StatusBadRequest {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 	}
-	expected := `{"statusCode":400, "reason":"User 123 tried to submit a rating higher than the max rating value '5' for session 987. Submitted rating 6"}`
+	expected := `{"statusCode":400, "reason":"User 123 submitted rating 6 is not within the allowed range of 1-5 for session 987"}`
 	if recorder.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v", recorder.Body.String(), expected)
 	}

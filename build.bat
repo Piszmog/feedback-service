@@ -1,9 +1,8 @@
 @echo off
 
-go test ./...
-
 set GOOS=windows
 set GOARCH=amd64
+go test ./...
 go build
 
 set GOOS=linux

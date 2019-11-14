@@ -60,9 +60,9 @@ func (s *HTTPServer) InsertFeedback() func(w http.ResponseWriter, r *http.Reques
 				fmt.Sprintf("Failed to decode user %s feedback for session %s", userID, sessionID), err, w)
 			return
 		}
-		if feedback.Rating > 5 {
+		if feedback.Rating > 5 || feedback.Rating < 1 {
 			writeHTTPError(http.StatusBadRequest,
-				fmt.Sprintf("User %s tried to submit a rating higher than the max rating value '5' for session %s. Submitted rating %d", userID, sessionID, feedback.Rating), nil, w)
+				fmt.Sprintf("User %s submitted rating %d is not within the allowed range of 1-5 for session %s", userID, feedback.Rating, sessionID), nil, w)
 			return
 		}
 		//
